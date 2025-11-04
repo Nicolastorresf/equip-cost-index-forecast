@@ -1,124 +1,156 @@
-### Informe
+# Caso 1 — Estimación de costos por materias primas (MVP)
 
-Fecha: 2025-11-03
-Código funcional: EDA_presentation.ipynb y Code_presentation.ipynb (pipeline reproducible; exporta CSV de resultados).
+> **Resumen ejecutivo.** Construimos un **índice de costo por equipo** a partir de X, Y, Z; generamos **P50 a 36 meses** y **bandas P10–P50–P90** por **Monte Carlo**. Entregamos un presupuesto defendible con **contingencia** explícita.
 
-Entregables
+---
 
-Código funcional
+## 📌 Índice
 
-EDA_presentation.ipynb → inventario de datos, alineación temporal, outliers, correlaciones, sensibilidad de mezcla.
+- [Entregables](#entregables)
+- [1) Explicación del caso](#1-explicación-del-caso)
+- [2) Supuestos](#2-supuestos)
+- [3) Formas de resolver y opción tomada](#3-formas-de-resolver-y-opción-tomada)
+- [4) Resultados del análisis de los datos y los modelos](#4-resultados-del-análisis-de-los-datos-y-los-modelos)
+  - [4.1 EDA (datos de entrada)](#41-eda-datos-de-entrada)
+  - [4.2 Pronóstico y riesgo (36 meses)](#42-pronóstico-y-riesgo-36-meses)
+  - [4.3 Recomendación de presupuesto (MVP)](#43-recomendación-de-presupuesto-mvp)
+- [5) Futuros ajustes o mejoras](#5-futuros-ajustes-o-mejoras)
+- [🔁 Reproducibilidad](#-reproducibilidad)
+- [📂 Estructura sugerida del repo](#-estructura-sugerida-del-repo)
+- [📋 Notas para la evaluación](#-notas-para-la-evaluación)
 
-Code_presentation.ipynb → costo histórico por equipo, P50 a 36 meses, Monte Carlo (P10–P50–P90), exportes CSV.
+---
 
-Informe (este documento) con los títulos solicitados.
+## Entregables
 
-Archivos de salida (CSV):
-equipo1_mc_p10_p50_p90_36m.csv, equipo2_mc_p10_p50_p90_36m.csv, series_pronosticadas_XYZ_36m.csv, costos_p50_36m.csv.
+**Código funcional**
+- `EDA_presentation.ipynb` → inventario de datos, alineación temporal, outliers, correlaciones, sensibilidad de mezcla.  
+- `Code_presentation.ipynb` → costo histórico por equipo, **P50** a 36 meses, **Monte Carlo** (P10–P50–P90), exportes CSV.
 
-1) Explicación del caso
+**Informe** (este documento) con los títulos solicitados.
 
-Se requiere estimar el costo de dos equipos a 36 meses. Cada costo depende de las materias primas X, Y, Z con mezclas fijas por equipo.
-La propuesta construye un índice de costo por equipo, obtiene un pronóstico base (P50) y cuantifica la incertidumbre mediante simulación Monte Carlo (bandas P10–P50–P90) para entregar un presupuesto defendible y una contingencia explícita.
+**Archivos de salida (CSV):**  
+`equipo1_mc_p10_p50_p90_36m.csv`, `equipo2_mc_p10_p50_p90_36m.csv`, `series_pronosticadas_XYZ_36m.csv`, `costos_p50_36m.csv`.
 
-2) Supuestos
+---
 
-Frecuencia: mensual. Moneda: precio técnico (sin IVA ni aranceles).
+## 1) Explicación del caso
 
-Mezclas por equipo:
+Se requiere estimar el costo de **dos equipos** a **36 meses**. Cada costo depende de las materias primas **X, Y, Z** con **mezclas fijas** por equipo.  
+La propuesta construye un **índice de costo por equipo**, obtiene un **pronóstico base (P50)** y cuantifica la **incertidumbre** mediante **simulación Monte Carlo** (bandas **P10–P50–P90**) para entregar un **presupuesto defendible** y una **contingencia** explícita.
 
-Equipo 1: 20% X + 80% Y
+---
 
-Equipo 2: ⅓ X + ⅓ Y + ⅓ Z
+## 2) Supuestos
 
-Componente no-material (α): 0 en esta versión (se puede activar para mano de obra, logística, etc.).
+- **Frecuencia:** mensual. **Moneda:** precio técnico (sin IVA ni aranceles).  
+- **Mezclas por equipo:**
 
-Alineación temporal: índice maestro mensual + forward-fill (el último precio observado se mantiene hasta nueva actualización).
+| Equipo   | Mezcla |
+|---------|--------|
+| Equipo 1 | 20% X + 80% Y |
+| Equipo 2 | ⅓ X + ⅓ Y + ⅓ Z |
 
-Modelado: P50 univariado por materia prima (ARIMA/naive-drift) y Monte Carlo con covarianza histórica de retornos para P10–P50–P90.
+- **Componente no-material (α):** 0 en este MVP (puede habilitarse para mano de obra, logística, etc.).  
+- **Alineación temporal:** índice maestro mensual + **forward-fill** (el último precio se mantiene hasta nueva observación).  
+- **Modelado:** P50 **univariado** por materia prima (ARIMA/naive-drift) y **Monte Carlo** con **covarianza histórica de retornos** (P10–P50–P90).
 
-3) Formas para resolver el caso y opción tomada
+---
 
-De lo simple a lo avanzado:
+## 3) Formas de resolver y opción tomada
 
-Precio estático del mes actual.
+**De lo simple a lo avanzado**
 
-Indexación compuesta por materias primas.
+1. Precio estático del mes actual.  
+2. **Indexación compuesta** por materias primas.  
+3. **Pronóstico univariado (P50)** de X, Y, Z + combinación por equipo.  
+4. **Monte Carlo** con correlación X–Y–Z (P10–P50–P90).  
+5. *(Futuro)* FX, fletes y **markup** por proveedor.  
+6. *(Futuro)* **Optimización** de abastecimiento (timing, lotes, cobertura).
 
-Pronóstico univariado (P50) de X, Y, Z + combinación por equipo.
+> **Opción adoptada (MVP):** **2 + 3 + 4** por equilibrio entre **trazabilidad**, **rapidez** e **incertidumbre cuantificada**.
 
-Monte Carlo con correlación X–Y–Z (P10–P50–P90).
+---
 
-(Futuro) Modelo con FX, fletes y markup por proveedor.
+## 4) Resultados del análisis de los datos y los modelos
 
-(Futuro) Optimización de abastecimiento (timing, lotes, cobertura).
+### 4.1 EDA (datos de entrada)
 
-Opción adoptada (MVP): 2 + 3 + 4 por su equilibrio entre trazabilidad, rapidez e incertidumbre cuantificada.
+**Cobertura (inicio → fin; n):**
 
-4) Resultados del análisis de los datos y los modelos
-4.1 EDA (datos de entrada)
+| Serie | Inicio      | Fin         | n   |
+|------|-------------|-------------|-----|
+| X    | 1988-06-01  | 2024-04-01  | 431 |
+| Y    | 2006-01-01  | 2024-04-01  | 220 |
+| Z    | 2010-01-01  | 2024-04-01  | 172 |
 
-Cobertura (inicio → fin; n):
+**Volatilidad de retornos (σ mensual):** X ≈ 0.098 · **Y ≈ 0.111** · Z ≈ 0.057  
+**Correlaciones de retornos:** X–Z ≈ **0.37** (moderada), X–Y ≈ 0.05 (baja), Y–Z ≈ −0.07 (ligera opuesta).  
+**Outliers (regla IQR):** X=4, **Y=67**, Z=5 (se documentan; sin recorte en el MVP).
 
-X: 1988-06-01 → 2024-04-01 · n=431
+> **Decisión EDA:** usar **alineación + forward-fill** para maximizar cobertura y **Monte Carlo** con covarianza histórica (dada la dependencia X–Z).
 
-Y: 2006-01-01 → 2024-04-01 · n=220
+---
 
-Z: 2010-01-01 → 2024-04-01 · n=172
+### 4.2 Pronóstico y riesgo (36 meses)
 
-Volatilidad de retornos (σ mensual): X ≈ 0.098 · Y ≈ 0.111 · Z ≈ 0.057
+**Equipo 1 (20% X + 80% Y)**
 
-Correlaciones de retornos: X–Z ≈ 0.37 (moderada), X–Y ≈ 0.05 (baja), Y–Z ≈ −0.07 (ligera opuesta).
+| Métrica | Valor |
+|---|---|
+| P50 inicial → final | 453.72 → 442.24 (**−2.53%** en 36m) |
+| Anchura relativa media | (P90−P10)/P50 ≈ **1.229** (*abanico muy ancho*) |
+| Contingencia media sugerida | **(P90−P50) ≈ 356.37** (≈ **80%** del P50) |
+| Mes de mayor riesgo relativo | **2026-08** |
 
-Outliers (regla IQR): X=4, Y=67, Z=5. Documentados; no se recortan en el MVP (winsorización opcional).
+**Equipo 2 (⅓ X + ⅓ Y + ⅓ Z)**
 
-Decisión de EDA: usar alineación + forward-fill para maximizar cobertura y Monte Carlo con covarianza (dada la dependencia X–Z).
+| Métrica | Valor |
+|---|---|
+| P50 inicial → final | 934.96 → 982.59 (**+5.09%** en 36m) |
+| Anchura relativa media | (P90−P10)/P50 ≈ **0.540** (*riesgo moderado*) |
+| Contingencia media sugerida | **(P90−P50) ≈ 299.11** (≈ **31%** del P50) |
+| Mes de mayor riesgo relativo | **2026-08** |
 
-4.2 Pronóstico y riesgo (36 meses)
-Equipo 1 (20% X + 80% Y)
+> **Nota técnica (P50 determinista):** `costos_p50_36m.csv` puede contener **NaN** por arranque/cola desfasados en `X_fc`, `Y_fc`, `Z_fc`. **Corrección:** reindexar + *ffill* los pronósticos antes de combinarlos. Para el **MVP**, usamos el **P50 de Monte Carlo** (mediana de trayectorias), sin huecos.
 
-P50 inicial → final: 453.72 → 442.24 (−2.53% en 36m).
+---
 
-Anchura relativa media: (P90 − P10) / P50 ≈ 1.229 (abanico muy ancho).
+### 4.3 Recomendación de presupuesto (MVP)
 
-Contingencia media sugerida: (P90 − P50) ≈ 356.37 (≈ 80% del P50).
+- **Base mensual:** **P50**.  
+- **Colchón / contingencia:** **(P90 − P50)** promedio mensual por equipo.
 
-Mes de mayor riesgo relativo: 2026-08.
+| Equipo   | Contingencia sugerida |
+|---------|------------------------|
+| Equipo 1 | **+356** |
+| Equipo 2 | **+299** |
 
-Equipo 2 (⅓ X + ⅓ Y + ⅓ Z)
+- **Riesgo calendario:** vigilar **2026-H2** (mayores anchos relativos).
 
-P50 inicial → final: 934.96 → 982.59 (+5.09% en 36m).
+---
 
-Anchura relativa media: (P90 − P10) / P50 ≈ 0.540 (riesgo moderado).
+## 5) Futuros ajustes o mejoras
 
-Contingencia media sugerida: (P90 − P50) ≈ 299.11 (≈ 31% del P50).
+- Corregir **NaN** en P50: reindexar/*ffill* en `series_pronosticadas_XYZ_36m.csv` antes de combinar.  
+- Incluir **FX** y **fletes** (si aplica); estimar **markup** por proveedor con histórico de cotizaciones.  
+- **Backtest** (walk-forward) para MAPE/WAPE del P50.  
+- **Winsorizar** retornos de Y (pctl 1–99) si se busca acotar bandas sin perder señal.  
+- **Stress tests** (shocks) y **sensibilidad de pesos** (±10%).  
+- Job **mensual** reproducible (entorno, versiones, CI/CD) y tablero/BI.
 
-Mes de mayor riesgo relativo: 2026-08.
+---
 
-Nota técnica (P50 determinista): costos_p50_36m.csv puede contener NaN por arranque/cola desfasados en X_fc, Y_fc, Z_fc. Corrección: reindexar + ffill los pronósticos antes de combinarlos. Para el MVP, el P50 de Monte Carlo (mediana de trayectorias) se usa como base y no presenta huecos.
+## 🔁 Reproducibilidad
 
-4.3 Recomendación de presupuesto (MVP)
+```bash
+# 1) Activar entorno (ejemplo con conda)
+conda activate caso_py312
 
-Base mensual: P50.
+# 2) Ejecutar EDA (genera EDA_resumen.json)
+# Abrir y correr: EDA_presentation.ipynb
 
-Colchón/contingencia: (P90 − P50) promedio mensual por equipo.
-
-Equipo 1: +356
-
-Equipo 2: +299
-
-Gestión de riesgo calendario: vigilar 2026-H2 (mayores anchos relativos).
-
-5) Futuros ajustes o mejoras
-
-Corregir NaN en P50: reindexar/ffill en series_pronosticadas_XYZ_36m.csv antes de combinar.
-
-Añadir FX y fletes (si aplica); estimar markup por proveedor con cotizaciones históricas.
-
-Backtest (walk-forward) para MAPE/WAPE del P50.
-
-Winsorizar retornos de Y (percentiles 1–99) si se busca acotar bandas sin perder señal.
-
-Stress tests (shocks) y sensibilidad de pesos (±10%).
-
-Job mensual reproducible (entorno, versiones, CI/CD) y tablero/BI.
+# 3) Ejecutar pipeline de modelado
+# Abrir y correr: Code_presentation.ipynb
+# Exporta: series_pronosticadas_XYZ_36m.csv, costos_p50_36m.csv,
+#          equipo1_mc_p10_p50_p90_36m.csv, equipo2_mc_p10_p50_p90_36m.csv
