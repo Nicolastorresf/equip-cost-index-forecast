@@ -1,0 +1,60 @@
+{
+  "Cobertura": {
+    "start": {
+      "X": "1988-06-01",
+      "Y": "2006-01-01",
+      "Z": "2010-01-01"
+    },
+    "end": {
+      "X": "2024-04-01",
+      "Y": "2024-04-01",
+      "Z": "2024-04-01"
+    },
+    "n_obs": {
+      "X": "431",
+      "Y": "220",
+      "Z": "172"
+    }
+  },
+  "Outliers_IQR": {
+    "X": {
+      "outliers": 4,
+      "lb": -0.21355297361563175,
+      "ub": 0.23240547538120893
+    },
+    "Y": {
+      "outliers": 67,
+      "lb": -0.019514607425441255,
+      "ub": 0.011708764455264753
+    },
+    "Z": {
+      "outliers": 5,
+      "lb": -0.1289043264458004,
+      "ub": 0.12677499982899054
+    }
+  },
+  "Corr_Rets": {
+    "X": {
+      "X": 1.0,
+      "Y": 0.051,
+      "Z": 0.373
+    },
+    "Y": {
+      "X": 0.051,
+      "Y": 1.0,
+      "Z": -0.071
+    },
+    "Z": {
+      "X": 0.373,
+      "Y": -0.071,
+      "Z": 1.0
+    }
+  },
+  "Volatilidad_mensual": {
+    "X": 0.0984,
+    "Y": 0.1112,
+    "Z": 0.0566
+  },
+  "Decision_indices": "Índice maestro mensual + ffill (precio se mantiene hasta nueva observación).",
+  "Decision_modelo": "P50 univariado (ARIMA/naive-drift) + Monte Carlo con covarianza histórica (P10–P90)."
+}
